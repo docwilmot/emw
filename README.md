@@ -1,31 +1,29 @@
-
 Entity API module
------------------
-by Wolfgang Ziegler, nuppla@zites.net
+=================
 
-This module extends the entity API of Drupal core in order to provide a unified
+**VERY ALPHA -- Use at your own risk**
+
+**This module is intended to port the "wrapper" bits from the Drupal Entity API
+module. The CRUD bits are already part of Backdrop core and may be removed later
+if this module is further developed, which in fact it may not be unless someone
+with more knowlege than myself can advise**
+
+This module extends the entity API of Backdrop core in order to provide a unified
 way to deal with entities and their properties. Additionally, it provides an
 entity CRUD controller, which helps simplifying the creation of new entity types.
-
 
 This is an API module. You only need to enable it if a module depends on it or
 you are interested in using it for development.
 
-Advanced usage:
+HOW TO INSTALL:
 ---------------
-You can optimize cache clearing performance by setting the variable
-'entity_rebuild_on_flush' to FALSE. This skips rebuilding of feature
-components and exported entities during cache flushing. Instead, it is triggered
-by the features module only; e.g., when features are reverted.
+- Install this module using the official Backdrop CMS instructions at 
+https://backdropcms.org/guide/modules
 
 
-The README below is for interested developers. If you are not interested in
-developing, you may stop reading now.
-
---------------------------------------------------------------------------------
-                                Entity API
---------------------------------------------------------------------------------
-
+Entity API
+----------
+** This is legacy documentation and may not reflect the future of this module**
   * The module provides API functions allowing modules to create, save, delete
     or to determine access for entities based on any entity type, for which the
     necessary metadata is available. The module comes with integration for all
@@ -38,7 +36,7 @@ developing, you may stop reading now.
     entity_delete(), entity_revision_delete(), entity_view() and entity_access()
     among others.
     entity_load(), entity_label() and entity_uri() are already provided by
-    Drupal core.
+    Backdrop core.
 
  *  For more information about how to provide this metadata, have a look at the
     API documentation, i.e. entity_metadata_hook_entity_info().
@@ -162,3 +160,20 @@ developing, you may stop reading now.
     data, you can do so via:
 
       $wrapper->body->value->raw();
+
+      
+LICENSE
+---------------    
+
+This project is GPL v2 software. See the LICENSE.txt file in this directory 
+for complete text.
+
+CURRENT MAINTAINERS
+---------------    
+
+Looking for maintainers
+
+CREDITS   
+--------------- 
+
+Original Drupal version by Wolfgang Ziegler, nuppla@zites.net

@@ -466,7 +466,7 @@ class EntityStructureWrapper extends EntityMetadataWrapper implements IteratorAg
       // In case the data structure is not set, support simple auto-creation
       // for arrays. Else an exception is thrown.
       if (!isset($data)) {
-        if (!empty($this->info['auto creation']) && !($this instanceof EntityDrupalWrapper)) {
+        if (!empty($this->info['auto creation']) && !($this instanceof EntityBackdropWrapper)) {
           $data = $this->info['auto creation']($name, $this->info);
         }
         else {
@@ -501,10 +501,10 @@ class EntityStructureWrapper extends EntityMetadataWrapper implements IteratorAg
     // the user has update access for this entity.
     if ($op == 'edit') {
       $entity = $this;
-      while (!($entity instanceof EntityDrupalWrapper) && isset($entity->info['parent'])) {
+      while (!($entity instanceof EntityBackdropWrapper) && isset($entity->info['parent'])) {
         $entity = $entity->info['parent'];
       }
-      if ($entity instanceof EntityDrupalWrapper && $entity->entityAccess('update', $account) === FALSE) {
+      if ($entity instanceof EntityBackdropWrapper && $entity->entityAccess('update', $account) === FALSE) {
         return FALSE;
       }
     }
@@ -561,7 +561,7 @@ class EntityStructureWrapper extends EntityMetadataWrapper implements IteratorAg
  * The wrapper eases applying getter and setter callbacks of entity properties
  * specified in hook_entity_property_info().
  */
-class EntityDrupalWrapper extends EntityStructureWrapper {
+class EntityBackdropWrapper extends EntityStructureWrapper {
 
   /**
    * Contains the entity id.
@@ -571,7 +571,7 @@ class EntityDrupalWrapper extends EntityStructureWrapper {
   protected $entityInfo;
 
   /**
-   * Construct a new EntityDrupalWrapper object.
+   * Construct a new EntityBackdropWrapper object.
    *
    * @param $type
    *   The type of the passed data.
@@ -606,7 +606,7 @@ class EntityDrupalWrapper extends EntityStructureWrapper {
       $this->id = $data;
       $this->data = FALSE;
     }
-    elseif (is_object($data) && $data instanceof EntityDrupalWrapper) {
+    elseif (is_object($data) && $data instanceof EntityBackdropWrapper) {
       // We got a wrapped entity passed, so take over its values.
       $this->id = $data->id;
       $this->data = $data->data;
@@ -803,7 +803,7 @@ class EntityDrupalWrapper extends EntityStructureWrapper {
    * Note that this method checks property access, but can be used for checking
    * entity access *only* if the wrapper is not a property (i.e. has no parent
    * wrapper).
-   * To be safe, better use EntityDrupalWrapper::entityAccess() for checking
+   * To be safe, better use EntityBackdropWrapper::entityAccess() for checking
    * entity access.
    */
   public function access($op, $account = NULL) {
@@ -847,7 +847,7 @@ class EntityDrupalWrapper extends EntityStructureWrapper {
    * @throws EntityMetadataWrapperException
    *   If the entity type does not support saving.
    *
-   * @return EntityDrupalWrapper
+   * @return EntityBackdropWrapper
    */
   public function save() {
     if ($this->data) {
@@ -867,7 +867,7 @@ class EntityDrupalWrapper extends EntityStructureWrapper {
   /**
    * Permanently delete the wrapped entity.
    *
-   * @return EntityDrupalWrapper
+   * @return EntityBackdropWrapper
    */
   public function delete() {
     if ($this->dataAvailable() && $this->value()) {
@@ -1220,5 +1220,172 @@ class EntityMetadataArrayObject implements ArrayAccess, Countable, IteratorAggre
 
   public function getIterator() {
     return new ArrayIterator($this->data);
+  }
+}
+
+/**
+ * Default controller for generating some basic metadata for CRUD entity types.
+ */
+class EntityDefaultMetadataController {
+
+  protected $type, $info;
+
+  public function __construct($type) {
+    $this->type = $type;
+    $this->info = entity_get_info($type);
+  }
+
+  public function entityPropertyInfo() {
+    $entity_label = drupal_strtolower($this->info['label']);
+
+    // Provide defaults based on the schema.
+    $info['properties'] = $this->convertSchema();
+    foreach ($info['properties'] as $name => &$property) {
+      // Add a description.
+      $property['description'] = t('@entity "@property" property.', array('@entity' => drupal_ucfirst($entity_label), '@property' => $name));
+    }
+
+    // Set better metadata for known entity keys.
+    $id_key = $this->info['entity keys']['id'];
+
+    if (!empty($this->info['entity keys']['name']) && $key = $this->info['entity keys']['name']) {
+      $info['properties'][$key]['type'] = 'token';
+      $info['properties'][$key]['label'] = t('Machine-readable name');
+      $info['properties'][$key]['description'] = t('The machine-readable name identifying this @entity.', array('@entity' => $entity_label));
+      $info['properties'][$id_key]['label'] = t('Internal, numeric @entity ID', array('@entity' => $entity_label));
+      $info['properties'][$id_key]['description'] = t('The ID used to identify this @entity internally.', array('@entity' => $entity_label));
+    }
+    else {
+      $info['properties'][$id_key]['label'] = t('@entity ID', array('@entity' => drupal_ucfirst($entity_label)));
+      $info['properties'][$id_key]['description'] = t('The unique ID of the @entity.', array('@entity' => $entity_label));
+    }
+    // Care for the bundle.
+    if (!empty($this->info['entity keys']['bundle']) && $key = $this->info['entity keys']['bundle']) {
+      $info['properties'][$key]['type'] = 'token';
+      $info['properties'][$key]['options list'] = array(get_class($this), 'bundleOptionsList');
+    }
+    // Care for the label.
+    if (!empty($this->info['entity keys']['label']) && $key = $this->info['entity keys']['label']) {
+      $info['properties'][$key]['label'] = t('Label');
+      $info['properties'][$key]['description'] = t('The human readable label.');
+    }
+
+    // Add a computed property for the entity URL and expose it to views.
+    if (empty($info['properties']['url']) && !empty($this->info['uri callback'])) {
+      $info['properties']['url'] = array(
+        'label' => t('URL'),
+        'description' => t('The URL of the entity.'),
+        'getter callback' => 'entity_metadata_entity_get_properties',
+        'type' => 'uri',
+        'computed' => TRUE,
+        'entity views field' => TRUE,
+      );
+    }
+
+    return array($this->type => $info);
+  }
+
+  /**
+   * A options list callback returning all bundles for an entity type.
+   */
+  public static function bundleOptionsList($name, $info) {
+    if (!empty($info['parent']) && $type = $info['parent']) {
+      $entity_info = $info['parent']->entityInfo();
+      $options = array();
+      foreach ($entity_info['bundles'] as $name => $bundle_info) {
+        $options[$name] = $bundle_info['label'];
+      }
+      return $options;
+    }
+  }
+
+  /**
+   * Return a set of properties for an entity based on the schema definition
+   */
+  protected function convertSchema() {
+    return entity_metadata_convert_schema($this->info['base table']);
+  }
+}
+
+/**
+ * Interface for extra fields controller.
+ *
+ * Note: Displays extra fields exposed by this controller are rendered by
+ * default by the EntityAPIController.
+ */
+interface EntityExtraFieldsControllerInterface {
+
+  /**
+   * Returns extra fields for this entity type.
+   *
+   * @see hook_field_extra_fields().
+   */
+  public function fieldExtraFields();
+}
+
+/**
+ * Default controller for generating extra fields based on property metadata.
+ *
+ * By default a display extra field for each property not being a field, ID or
+ * bundle is generated.
+ */
+class EntityDefaultExtraFieldsController implements EntityExtraFieldsControllerInterface {
+
+  /**
+   * @var string
+   */
+  protected $entityType;
+
+  /**
+   * @var array
+   */
+  protected $entityInfo;
+
+  /**
+   * Constructor.
+   */
+  public function __construct($type) {
+    $this->entityType = $type;
+    $this->entityInfo = entity_get_info($type);
+    $this->propertyInfo = entity_get_property_info($type);
+  }
+
+  /**
+   * Implements EntityExtraFieldsControllerInterface::fieldExtraFields().
+   */
+  public function fieldExtraFields() {
+    $extra = array();
+    foreach ($this->propertyInfo['properties'] as $name => $property_info) {
+      // Skip adding the ID or bundle.
+      if ($this->entityInfo['entity keys']['id'] == $name || $this->entityInfo['entity keys']['bundle'] == $name) {
+        continue;
+      }
+      $extra[$this->entityType][$this->entityType]['display'][$name] = $this->generateExtraFieldInfo($name, $property_info);
+    }
+
+    // Handle bundle properties.
+    $this->propertyInfo += array('bundles' => array());
+    foreach ($this->propertyInfo['bundles'] as $bundle_name => $info) {
+      foreach ($info['properties'] as $name => $property_info) {
+        if (empty($property_info['field'])) {
+          $extra[$this->entityType][$bundle_name]['display'][$name] = $this->generateExtraFieldInfo($name, $property_info);
+        }
+      }
+    }
+    return $extra;
+  }
+
+  /**
+   * Generates the display field info for a given property.
+   */
+  protected function generateExtraFieldInfo($name, $property_info) {
+    $info = array(
+      'label' => $property_info['label'],
+      'weight' => 0,
+    );
+    if (!empty($property_info['description'])) {
+      $info['description'] = $property_info['description'];
+    }
+    return $info;
   }
 }

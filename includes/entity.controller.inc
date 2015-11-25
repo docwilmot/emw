@@ -9,7 +9,7 @@
 /**
  * Interface for EntityControllers compatible with the entity API.
  */
-interface EntityAPIControllerInterface extends DrupalEntityControllerInterface {
+interface EntityAPIControllerInterface extends BackdropEntityControllerInterface {
 
   /**
    * Delete permanently saved entities.
@@ -143,7 +143,7 @@ interface EntityAPIControllerRevisionableInterface extends EntityAPIControllerIn
 /**
  * A controller implementing EntityAPIControllerInterface for the database.
  */
-class EntityAPIController extends DrupalDefaultEntityController implements EntityAPIControllerRevisionableInterface {
+class EntityAPIController extends BackdropDefaultEntityController implements EntityAPIControllerRevisionableInterface {
 
   protected $cacheComplete = FALSE;
   protected $bundleKey;
@@ -151,7 +151,7 @@ class EntityAPIController extends DrupalDefaultEntityController implements Entit
 
   /**
    * Overridden.
-   * @see DrupalDefaultEntityController#__construct()
+   * @see BackdropDefaultEntityController#__construct()
    */
   public function __construct($entityType) {
     parent::__construct($entityType);
@@ -164,7 +164,7 @@ class EntityAPIController extends DrupalDefaultEntityController implements Entit
   }
 
   /**
-   * Overrides DrupalDefaultEntityController::buildQuery().
+   * Overrides BackdropDefaultEntityController::buildQuery().
    */
   protected function buildQuery($ids, $conditions = array(), $revision_id = FALSE) {
     $query = parent::buildQuery($ids, $conditions, $revision_id);
@@ -193,7 +193,7 @@ class EntityAPIController extends DrupalDefaultEntityController implements Entit
 
   /**
    * Overridden.
-   * @see DrupalDefaultEntityController#load($ids, $conditions)
+   * @see BackdropDefaultEntityController#load($ids, $conditions)
    *
    * In contrast to the parent implementation we factor out query execution, so
    * fetching can be further customized easily.
@@ -311,7 +311,7 @@ class EntityAPIController extends DrupalDefaultEntityController implements Entit
   }
 
   /**
-   * Overrides DrupalDefaultEntityController::resetCache().
+   * Overrides BackdropDefaultEntityController::resetCache().
    */
   public function resetCache(array $ids = NULL) {
     $this->cacheComplete = FALSE;
@@ -766,7 +766,7 @@ class EntityAPIControllerExportable extends EntityAPIController {
 
   /**
    * Overridden.
-   * @see DrupalDefaultEntityController::cacheGet()
+   * @see BackdropDefaultEntityController::cacheGet()
    */
   protected function cacheGet($ids, $conditions = array()) {
     if (!empty($this->entityCache) && $ids !== array()) {
@@ -813,7 +813,7 @@ class EntityAPIControllerExportable extends EntityAPIController {
 
   /**
    * Overridden.
-   * @see DrupalDefaultEntityController::cacheSet()
+   * @see BackdropDefaultEntityController::cacheSet()
    */
   protected function cacheSet($entities) {
     $this->entityCache += $entities;
@@ -825,7 +825,7 @@ class EntityAPIControllerExportable extends EntityAPIController {
 
   /**
    * Overridden.
-   * @see DrupalDefaultEntityController::attachLoad()
+   * @see BackdropDefaultEntityController::attachLoad()
    *
    * Changed to call type-specific hook with the entities keyed by name if they
    * have one.

@@ -229,7 +229,7 @@ function entity_metadata_statistics_properties_access($op, $property, $entity = 
 function entity_metadata_system_get_properties($data = FALSE, array $options, $name) {
   switch ($name) {
     case 'name':
-      return variable_get('site_name', 'Drupal');
+      return variable_get('site_name', 'Backdrop');
 
     case 'url':
       return url('<front>', $options);
@@ -551,7 +551,7 @@ function entity_metadata_field_verbatim_set($entity, $name, $items, $langcode, $
  */
 function entity_metadata_field_get_language($entity_type, $entity, $field, $langcode = LANGUAGE_NONE, $fallback = FALSE) {
   // Try to figure out the default language used by the entity.
-  // With Drupal >= 7.15 we can use entity_language().
+  // With Backdrop >= 7.15 we can use entity_language().
   if (function_exists('entity_language')) {
     $default_langcode = entity_language($entity_type, $entity);
   }

@@ -45,7 +45,7 @@
  *   and status key as defined by entity_exportable_schema_fields() have to
  *   exist in the entity's base table. Also see 'entity keys' below.
  *   This option requires the EntityAPIControllerExportable to work.
- * - entity keys: An array of keys as defined by Drupal core. The following
+ * - entity keys: An array of keys as defined by Backdrop core. The following
  *   additional keys are used by the entity CRUD API:
  *   - name: (optional) The key of the entity property containing the unique,
  *     machine readable name of the entity. If specified, this is used as

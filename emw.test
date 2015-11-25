@@ -8,7 +8,7 @@
 /**
  * Common parent class containing common helpers.
  */
-abstract class EntityWebTestCase extends DrupalWebTestCase {
+abstract class EntityWebTestCase extends BackdropWebTestCase {
 
   /**
    * Creates a new vocabulary.
@@ -549,7 +549,7 @@ class EntityAPICommentNodeAccessTestCase extends CommentHelperCase {
   }
 
   function setUp() {
-    DrupalWebTestCase::setUp('comment', 'entity', 'node_access_test');
+    BackdropWebTestCase::setUp('comment', 'entity', 'node_access_test');
     node_access_rebuild();
 
     // Create test node and user with simple node access permission. The
@@ -608,9 +608,9 @@ class EntityAPIi18nItegrationTestCase extends EntityWebTestCase {
   }
 
   /**
-   * Copied from i18n module (class Drupali18nTestCase).
+   * Copied from i18n module (class Backdropi18nTestCase).
    *
-   * We cannot extend from Drupali18nTestCase as else the test-bot would die.
+   * We cannot extend from Backdropi18nTestCase as else the test-bot would die.
    */
   public function addLanguage($language_code) {
     // Check to make sure that language has not already been installed.
@@ -1092,7 +1092,7 @@ class EntityMetadataTestCase extends EntityWebTestCase {
   }
 
   /**
-   * Tests serializing data wrappers, in particular for EntityDrupalWrapper.
+   * Tests serializing data wrappers, in particular for EntityBackdropWrapper.
    */
   function testWrapperSerialization() {
     $node = $this->drupalCreateNode();
@@ -1254,7 +1254,7 @@ class EntityMetadataNodeCreateAccessTestCase extends EntityWebTestCase {
  *
  * Based almost entirely on NodeRevisionPermissionsTestCase.
  */
-class EntityMetadataNodeRevisionAccessTestCase extends DrupalWebTestCase {
+class EntityMetadataNodeRevisionAccessTestCase extends BackdropWebTestCase {
   protected $node_revisions = array();
   protected $accounts = array();
 
