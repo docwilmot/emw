@@ -1236,11 +1236,11 @@ function entity_metadata_site_wrapper() {
  * @see entity_entity_info_alter()
  */
 function emw_module_implements_alter(&$implementations, $hook) {
-  if ($hook == 'emw_info_alter') {
+  if ($hook == 'emw_entity_info_alter') {
     // Move our hook implementation to the bottom.
-    $group = $implementations['entity'];
-    unset($implementations['entity']);
-    $implementations['entity'] = $group;
+    $group = $implementations['emw'];
+    unset($implementations['emw']);
+    $implementations['emw'] = $group;
   }
 }
 
@@ -1333,16 +1333,18 @@ function _entity_info_add_metadata(&$entity_info) {
     $entity_info['taxonomy_term']['view callback'] = 'entity_metadata_view_single';
     $entity_info['taxonomy_term']['form callback'] = 'entity_metadata_form_taxonomy_term';
 
-    $entity_info['taxonomy_vocabulary']['plural label'] = t('Taxonomy vocabularies');
-    $entity_info['taxonomy_vocabulary']['description'] = t('Vocabularies contain related taxonomy terms, which are used for classifying content.');
-    $entity_info['taxonomy_vocabulary']['access callback'] = 'entity_metadata_taxonomy_access';
-    $entity_info['taxonomy_vocabulary']['creation callback'] = 'entity_metadata_create_object';
-    $entity_info['taxonomy_vocabulary']['save callback'] = 'taxonomy_vocabulary_save';
-    $entity_info['taxonomy_vocabulary']['deletion callback'] = 'taxonomy_vocabulary_delete';
-    $entity_info['taxonomy_vocabulary']['form callback'] = 'entity_metadata_form_taxonomy_vocabulary';
+    if (isset($entity_info['taxonomy_vocabulary'])) {
+      $entity_info['taxonomy_vocabulary']['plural label'] = t('Taxonomy vocabularies');
+      $entity_info['taxonomy_vocabulary']['description'] = t('Vocabularies contain related taxonomy terms, which are used for classifying content.');
+      $entity_info['taxonomy_vocabulary']['access callback'] = 'entity_metadata_taxonomy_access';
+      $entity_info['taxonomy_vocabulary']['creation callback'] = 'entity_metadata_create_object';
+      $entity_info['taxonomy_vocabulary']['save callback'] = 'taxonomy_vocabulary_save';
+      $entity_info['taxonomy_vocabulary']['deletion callback'] = 'taxonomy_vocabulary_delete';
+      $entity_info['taxonomy_vocabulary']['form callback'] = 'entity_metadata_form_taxonomy_vocabulary';
+      $entity_info['taxonomy_vocabulary']['token type'] = 'vocabulary';
+    }
     // Token type mapping.
     $entity_info['taxonomy_term']['token type'] = 'term';
-    $entity_info['taxonomy_vocabulary']['token type'] = 'vocabulary';
   }
 }
 

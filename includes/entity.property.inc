@@ -40,7 +40,6 @@ function entity_get_property_info($entity_type = NULL) {
       cache_set("entity_property_info:$langcode", $info);
     }
   }
-    dpm($info);
 
   return empty($entity_type) ? $info : (isset($info[$entity_type]) ? $info[$entity_type] : array());
 }
